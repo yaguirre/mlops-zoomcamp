@@ -18,6 +18,8 @@ How many files were saved to `OUTPUT_FOLDER?
 
 * 4 (`dv.pkl`, `test.pkl`, `train.pkl`, `val.pkl`)
 
+![alt text](image.png)
+
 ## Q3. Train a model with autolog
 
 Modify the `train.py` script to enable **autologging** with MLflow, execute the script and then launch the MLflow UI to check that the experiment run was properly tracked.
@@ -25,6 +27,8 @@ Modify the `train.py` script to enable **autologging** with MLflow, execute the 
 What is the value of the `min_samples_split` parameter?
 
 * 2 
+
+![alt text](image-1.png)
 
 ## Q4. Launch the tracking server locally
 
@@ -42,6 +46,9 @@ What's the best validation RMSE that you got?
 
 * 5.335
 
+![alt text](image-2.png)
+![alt text](image-3.png)
+
 ## Q6. Promote the best model to the model registry
 
 Promote the best model to the model registry. Update the `register_model.py` so that it selects the model with the lowest RMSE on the test set and registers it to the model registry
@@ -49,3 +56,6 @@ Promote the best model to the model registry. Update the `register_model.py` so 
 What is the test RMSE of the best model?
 
 * 5.567
+
+![alt text](image-4.png)
+![alt text](image-5.png)
