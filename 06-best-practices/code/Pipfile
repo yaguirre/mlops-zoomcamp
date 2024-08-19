@@ -7,9 +7,11 @@ name = "pypi"
 boto3 = "*"
 mlflow = "*"
 scikit-learn = "==1.0.2"
+ipython = "*"
 
 [dev-packages]
 pytest = "*"
+deepdiff = "*"
 
 [requires]
 python_version = "3.9"

@@ -5,11 +5,22 @@ import base64
 
 import mlflow
 
-# kinesis_client = boto3.client('kinesis')
+def get_model_location(run_id):
+    model_location = os.getenv('MODEL_LOCATION')
+
+    if model_location is not None:
+        return model_location
+
+    model_bucket = os.getenv('MODEL_BUCKET', 'mlflow-models-alexey')
+    experiment_id = os.getenv('MLFLOW_EXPERIMENT_ID', '1')
+
+    model_location = f's3://{model_bucket}/{experiment_id}/{run_id}/artifacts/model'
+    return model_location
+
 
 def load_model(run_id):
-    logged_model = f's3://mlflow-models/1/{run_id}/artifacts/model'
-    model = mlflow.pyfunc.load_model(logged_model)
+    model_path = get_model_location(run_id)
+    model = mlflow.pyfunc.load_model(model_path)
     return model
 
 def base64_decode(encoded_data):
@@ -85,19 +96,28 @@ class KinesisCallback():
             PartitionKey=str(ride_id)
         )
 
+def create_kinesis_client():
+    endpoint_url = os.getenv('KINESIS_ENDPOINT_URL')
+
+    if endpoint_url is None:
+        return boto3.client('kinesis')
+
+    return boto3.client('kinesis', endpoint_url=endpoint_url,  aws_access_key_id='dummy', aws_secret_access_key='dummy', region_name='us-east-1')
+
+
 def init(prediction_stream_name: str, run_id: str, test_run: bool):
     model = load_model(run_id)
 
     callbacks = []
- 
+
     if not test_run:
-        kinesis_client = boto3.client('kinesis')
+        kinesis_client = create_kinesis_client()
         kinesis_callback = KinesisCallback(kinesis_client, prediction_stream_name)
         callbacks.append(kinesis_callback.put_record)
 
-    model_service = ModelService(model)
-    return model_service
+    model_service = ModelService(model=model, model_version=run_id, callbacks=callbacks)
 
+    return model_service
 
 
 
