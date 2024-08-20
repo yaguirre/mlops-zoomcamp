@@ -1,7 +1,8 @@
 import os
 import json
-import boto3
 import base64
+import boto3
+
 
 import mlflow
 
@@ -37,7 +38,7 @@ class ModelService():
 
     def prepare_features(self, ride):
         features = {}
-        features['PU_DO'] = '%s_%s' % (ride['PULocationID'], ride['DOLocationID'])
+        features['PU_DO'] = f"{ride['PULocationID']}_{ride['DOLocationID']}"
         features['trip_distance'] = ride['trip_distance']
         return features
 
@@ -48,9 +49,9 @@ class ModelService():
 
     def lambda_handler(self, event):
         # print(json.dumps(event))
-    
+
         predictions_events = []
-        
+
         for record in event['Records']:
             encoded_data = record['kinesis']['data']
             ride_event = base64_decode(encoded_data)
@@ -58,22 +59,22 @@ class ModelService():
             # print(ride_event)
             ride = ride_event['ride']
             ride_id = ride_event['ride_id']
-        
+
             features = self.prepare_features(ride)
             prediction = self.predict(features)
-        
+
             prediction_event = {
                 'model': 'ride_duration_prediction_model',
                 'version': self.model_version,
                 'prediction': {
                     'ride_duration': prediction,
-                    'ride_id': ride_id   
+                    'ride_id': ride_id
                 }
             }
 
             for callback in self.callbacks:
                 callback(prediction_event)
-            
+
             predictions_events.append(prediction_event)
 
 
@@ -118,13 +119,3 @@ def init(prediction_stream_name: str, run_id: str, test_run: bool):
     model_service = ModelService(model=model, model_version=run_id, callbacks=callbacks)
 
     return model_service
-
-
-
-
-
-
-
-
-
-

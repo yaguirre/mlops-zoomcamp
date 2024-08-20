@@ -29,3 +29,9 @@ aws --endpoint-url=http://localhost:4566 kinesis list-streams
 
 aws --endpoint-url=http://localhost:4566 kinesis create-stream --stream-name <value> --shard-count <value>
 ```
+
+To prepare the project, run
+
+```bash
+make setup
+```

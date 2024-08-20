@@ -12,7 +12,7 @@ def test_base64_decode():
         "ride_id": 256
     }
 
-    assert actual_result == expected_result 
+    assert actual_result == expected_result
 
 
 def test_prepare_features():
@@ -33,7 +33,7 @@ def test_prepare_features():
 
 
 class ModelMock:
-    
+
     def __init__(self, value):
         self.value = value
 
@@ -50,7 +50,7 @@ def test_predict():
         "trip_distance": 3.66
     }
     actual_prediction = model_service.predict(features)
-    expected_prediction = 10.0 
+    expected_prediction = 10.0
 
     assert actual_prediction == expected_prediction
 
@@ -62,7 +62,7 @@ def test_lambda_handler():
     event = {
         "Records": [{
             "kinesis": {
-                "data": "ewogICAgICAgICJyaWRlIjogewogICAgICAgICAgICAiUFVMb2NhdGlvbklEIjogMTMwLAogICAgICAgICAgICAiRE9Mb2NhdGlvbklEIjogMjA1LAogICAgICAgICAgICAidHJpcF9kaXN0YW5jZSI6IDMuNjYKICAgICAgICB9LCAKICAgICAgICAicmlkZV9pZCI6IDI1NgogICAgfQ==" 
+                "data": "ewogICAgICAgICJyaWRlIjogewogICAgICAgICAgICAiUFVMb2NhdGlvbklEIjogMTMwLAogICAgICAgICAgICAiRE9Mb2NhdGlvbklEIjogMjA1LAogICAgICAgICAgICAidHJpcF9kaXN0YW5jZSI6IDMuNjYKICAgICAgICB9LCAKICAgICAgICAicmlkZV9pZCI6IDI1NgogICAgfQ=="
             }
         }]
     }
@@ -73,7 +73,7 @@ def test_lambda_handler():
             'version': model_version,
             'prediction': {
                 'ride_duration': 10.0,
-                'ride_id': 256 
+                'ride_id': 256
             }
         }]
     }

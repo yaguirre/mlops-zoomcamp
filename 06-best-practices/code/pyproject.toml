@@ -1,0 +1,9 @@
+[tool.pylint.message_control]
+
+disable = [
+    "missing-function-docstring",
+    "missing-class-docstring",
+    "missing-module-docstring",
+    "unused_argument"
+]
+

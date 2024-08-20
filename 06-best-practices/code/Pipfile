@@ -12,6 +12,10 @@ ipython = "*"
 [dev-packages]
 pytest = "*"
 deepdiff = "*"
+pylint = "*"
+black = "*"
+isort = "*"
+pre-commit = "*"
 
 [requires]
 python_version = "3.9"
