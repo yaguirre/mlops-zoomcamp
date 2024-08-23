@@ -3,7 +3,6 @@ import json
 import base64
 import boto3
 
-
 import mlflow
 
 def get_model_location(run_id):

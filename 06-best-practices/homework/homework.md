@@ -101,3 +101,145 @@ How many rows should be there in the expected dataframe?
 ![alt text](images/q3-unit-test.png)
 
 ## Question #4. Mocking S3 with LocalStack
+
+Now let's prepare for an integration test. In our script, we write data to S3. So we'll use Localstack to mimic S3.
+
+First, let's run Localstack with Docker compose. Let's create a `docker-compose.yaml` file with just one service: localstack. Inside localstack, we're only interested in running S3.
+
+Start the service and test it by creating a bucket where we'll keep the output. Let's call it "nyc-duration".
+
+With AWS CLI, this is how we create a bucket
+
+```
+aws s3 mb s3://nyc-duration
+```
+
+> [!NOTE]
+> I decided to create the bucket using `aws s3api create-bucket --bucket nyc-duration` command 
+
+Then we need to check that the bucket was successfully created. With AWS, this is how we typically do it:
+
+```
+aws s3 ls
+```
+
+In both cases we should adjust commands for localstack. What option do we need to use for such purposes?
+
+* --backend-store-uri
+* --profile
+* `--endpoint-url`
+* --version
+
+![alt text](images/q4-bucket-creation.png)
+
+### Make input and output path configurable
+
+Right now the input and output paths are hardcoded, but we want to change it for the tests.
+
+One of the possible ways would be to specify `INPUT_FILE_PATTERN` and `OUTPUT_FILE_PATTERN` via the env variables. Let's do that: 
+
+```bash
+export INPUT_FILE_PATTERN="s3://nyc-duration/in/{year:04d}-{month:02d}.parquet"
+export OUTPUT_FILE_PATTERN="s3://nyc-duration/out/{year:04d}-{month:02d}.parquet"
+```
+
+And this is how we can read them:
+
+```python
+def get_input_path(year, month):
+    default_input_pattern = 'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year:04d}-{month:02d}.parquet'
+    input_pattern = os.getenv('INPUT_FILE_PATTERN', default_input_pattern)
+    return input_pattern.format(year=year, month=month)
+
+
+def get_output_path(year, month):
+    default_output_pattern = 's3://nyc-duration-prediction-alexey/taxi_type=fhv/year={year:04d}/month={month:02d}/predictions.parquet'
+    output_pattern = os.getenv('OUTPUT_FILE_PATTERN', default_output_pattern)
+    return output_pattern.format(year=year, month=month)
+
+
+def main(year, month):
+    input_file = get_input_path(year, month)
+    output_file = get_output_path(year, month)
+    # rest of the main function ... 
+
+```
+
+![alt text](images/q4-input-output.png)
+
+### Reading from Localstack S3 with Pandas
+
+So far we've been reading parquet files from S3 with using pandas `read_parquet`. But this way we read it from the actual S3 service. Now we need to replace it with our localstack one.
+
+For that, we need to specify the endpoint url:
+
+```python
+options = {
+    'client_kwargs': {
+        'endpoint_url': S3_ENDPOINT_URL
+    }
+}
+
+df = pd.read_parquet('s3://bucket/file.parquet', storage_options=options)
+```
+
+Let's modify our `read_data` function:
+
+* check if `S3_ENDPOINT_URL` is set, and if it is, use it for reading
+* otherwise use the usual way
+
+![alt text](images/q4-s3-endpoint-url.png)
+
+## Question #5. Creating test data
+
+Now let's create `integration_test.py`
+
+We'll use the dataframe we created in Q3 (the dataframe for the unit test) and save it to S3. You don't need to do anything else: just create a dataframe and save it.
+
+We will pretend that this is data for January 2023.
+
+Run the `integration_test.py` script. After that, use AWS CLI to verify that the file was created.
+
+Use this snipped for saving the file:
+
+```python
+df_input.to_parquet(
+    input_file,
+    engine='pyarrow',
+    compression=None,
+    index=False,
+    storage_options=options
+)
+```
+
+What's the size of the file?
+
+* `3620`
+* 23620
+* 43620
+* 63620
+
+![alt text](images/q5-file-size.png)
+
+## Question #6. Finish the integration test
+
+We can read from our localstack s3, but we also need to write to it.
+
+Create a function `save_data` which works similarly to `read_data`, but we use it for saving a dataframe.
+
+Let's run the `batch.py` script for January 2023 (the fake data we created in Q5).
+
+We can do that from our integration test in Python: we can use `os.system` for doing that (there are other options too)
+
+Now it saves the result to localstack.
+
+The only thing we need to do now is to read this data and verify the result is correct.
+
+What's the sum of predicted durations for the test dataframe?
+
+* 13.08
+* `36.28`
+* 69.28
+* 81.08
+
+![alt text](images/q6-predicted-durations.png)
